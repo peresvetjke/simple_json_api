@@ -14,7 +14,7 @@ Develop a simple JSON API.
 17.05.22
 
 ### Key features
-#### perform all CRUD actions with resources
+#### perform all standard CRUD actions with resources
 - /topics
 - /tags
 
