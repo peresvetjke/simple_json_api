@@ -30,19 +30,19 @@ http://localhost:3000/api/v1/topics.json?topics_ids[]=1&topics_ids[]=2&sort=-id
 
 #### filter:
 ```
-http://localhost:3000/api/v1/topics.json?topics_ids[]=1
+http://localhost:3000/api/v1/topics.json?topics_ids[]=1&topics_ids[]=2
 ```
 You can filter topics by topics_ids, tags or title_query.
 Mention that both topics_ids and tags are expected to be an Array.
 
-#### or both:
-```
-http://localhost:3000/api/v1/topics.json?topics_ids[]=1&topics_ids[]=2&sort=-id
-```
-
-#### pagination
+#### paginate
 ```
 http://localhost:3000/api/v1/topics.json?page[size]=5&page[number]=2
+```
+
+#### or mix:
+```
+http://localhost:3000/api/v1/topics.json?topics_ids[]=1&topics_ids[]=2&sort=-id
 ```
 
 ### ER Diagram
