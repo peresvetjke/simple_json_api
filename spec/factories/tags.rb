@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :tag do
-    name { "tag_name" } 
+    name { generate(:title) }
     slug { "/path/to" } 
   end
 end

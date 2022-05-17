@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      resources :tags
       resources :topics
       get '/topics(/:url)', to: 'topics#show', constraints: { url: /.+/ }
     end

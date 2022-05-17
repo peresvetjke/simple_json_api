@@ -76,6 +76,6 @@ class Api::V1::TopicsController < Api::V1::BaseController
   end
 
   def topic_params
-    params.require(:topic).permit(:title, :url, :publication_date, :image_link, :annonce, :body)
+    params.require(:topic).permit(:title, :url, :publication_date, :image_link, :annonce, :body, tag_list: [])
   end
 end

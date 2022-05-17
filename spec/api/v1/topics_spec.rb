@@ -37,12 +37,12 @@ describe "Topics API", type: :request do
     
     before { do_request("get", path, params: { }, headers: headers) }
 
-    context "GET /api/v1/:id" do
+    context "GET /api/v1/topics/:id" do
       let(:path)      { "/api/v1/topics/#{topic.id}" }
       it_behaves_like "show"
     end
 
-    context "GET /api/v1/:path_to_topic" do
+    context "GET /api/v1/topics/:path_to_topic" do
       let(:path)      { "/api/v1/topics/#{topic.url}" }
       it_behaves_like "show"
     end
@@ -176,6 +176,32 @@ describe "Topics API", type: :request do
         %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
           expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
         end
+      end
+    end
+
+    context "with tags" do
+      let!(:tag_1) { create(:tag) }
+      let!(:tag_2) { create(:tag) }
+
+      before { do_request(method, 
+                          path, 
+                          params: { topic: attributes_for(:topic).merge({tag_list: [tag_1.name, tag_2.name]}) }, 
+                          headers: headers
+                         ) 
+              }
+
+      it "return status 'created'" do
+        expect(response.status).to eq 201
+      end
+
+      it "returns all neccessary fields of created person" do
+        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+          expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+        end
+      end
+
+      it "assigns tags" do
+        expect(assigns(:topic).reload.tag_list).to match_array([tag_1.name, tag_2.name])
       end
     end
 
