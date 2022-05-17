@@ -1,4 +1,6 @@
 class Api::V1::TopicsController < Api::V1::BaseController
+  include JSONAPI::Pagination
+
   before_action :set_topic, only: %i[show update destroy]
 
   def show
@@ -27,7 +29,9 @@ class Api::V1::TopicsController < Api::V1::BaseController
         end
 
         if @topics
-          render json: TopicSerializer.new(@topics)
+          jsonapi_paginate(@topics) do |paginated|
+            render jsonapi: paginated
+          end
         else
           render status: :not_found, body: nil
         end

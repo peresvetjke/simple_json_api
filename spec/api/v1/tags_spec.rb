@@ -105,7 +105,7 @@ describe "Tags API", type: :request do
           expect(tag_response['attributes'][attr]).to eq assigns(:tag).send(attr).as_json
         end
       end
-    end
+    end 
   end
 
   describe "DELETE /api/v1/tags/:id" do

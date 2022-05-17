@@ -61,7 +61,6 @@ describe "Topics API", type: :request do
 
       before { subject }
 
-      
       it "returns 200 status" do
         expect(response.status).to eq 200
       end
@@ -72,7 +71,7 @@ describe "Topics API", type: :request do
 
       it "returns all neccessary fields" do
         %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
-          expect(topics_response.last['attributes'][attr]).to eq topics.last.send(attr).as_json
+          expect(topics_response.last['attributes'][attr]).to eq Topic.find(topics_response.last['attributes']['id']).send(attr).as_json
         end
       end
     end
@@ -102,7 +101,7 @@ describe "Topics API", type: :request do
 
         it "returns all neccessary fields" do
           %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
-            expect(topics_response.last['attributes'][attr]).to eq topics.last.send(attr).as_json
+            expect(topics_response.last['attributes'][attr]).to eq Topic.find(topics_response.last['attributes']['id']).send(attr).as_json
           end
         end
       end
@@ -151,6 +150,26 @@ describe "Topics API", type: :request do
           %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
             expect(topics_response.last['attributes'][attr]).to eq topics.last.send(attr).as_json
           end
+        end
+      end
+    end
+
+    context "pagination" do
+      let(:params)              {{ page: { size: 3 } }}
+
+      before { subject }
+        
+      it "returns 200 status" do
+        expect(response.status).to eq 200
+      end
+
+      it "returns all records" do
+        expect(topics_response.count).to eq 3
+      end
+
+      it "returns all neccessary fields" do
+        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+          expect(topics_response.first['attributes'][attr]).to eq Topic.find(topics_response.first['attributes']['id']).send(attr).as_json
         end
       end
     end
