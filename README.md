@@ -1,17 +1,15 @@
 # Simple json api
 
-With this simple API application includes CRUD operations with Materials and Tags and more.
+### Goals
+Develop a simple JSON API.
 
-Built with
+### Built with
 - Ruby 2.7, Rails 6.16;
 - DB: postgres;
 - Serializers: jsonapi-serializer, ransack;
 - Tags: acts-as-taggable-on;
 - Tests: RSpec, FactoryBot;
     
-### Goals
-Develop a simple JSON API.
-
 ### When
 17.05.22
 
