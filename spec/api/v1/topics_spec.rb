@@ -154,7 +154,7 @@ describe "Topics API", type: :request do
       end
     end
 
-    context "pagination" do
+    describe "pagination" do
       let(:params)              {{ page: { size: 3 } }}
 
       before { subject }
@@ -165,6 +165,31 @@ describe "Topics API", type: :request do
 
       it "returns all records" do
         expect(topics_response.count).to eq 3
+      end
+
+      it "returns all neccessary fields" do
+        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+          expect(topics_response.first['attributes'][attr]).to eq Topic.find(topics_response.first['attributes']['id']).send(attr).as_json
+        end
+      end
+    end
+
+    describe "sorting" do
+      let(:params) {{ }}
+      let(:path)   { "/api/v1/topics?sort=-id&publication_date" }
+
+      before { subject }
+
+      it "returns sorted records" do
+        expect(topics_response.first['attributes']['id']).to eq Topic.last.id
+      end
+
+      it "returns 200 status" do
+        expect(response.status).to eq 200
+      end
+
+      it "returns all records" do
+        expect(topics_response.count).to eq 6
       end
 
       it "returns all neccessary fields" do

@@ -1,4 +1,5 @@
 class Api::V1::TopicsController < Api::V1::BaseController
+  include JSONAPI::Filtering
   include JSONAPI::Pagination
 
   before_action :set_topic, only: %i[show update destroy]
@@ -16,6 +17,8 @@ class Api::V1::TopicsController < Api::V1::BaseController
   end
 
   def index
+    allowed = [:id, :publication_date, :title]
+
     respond_to do |format|
       format.json do
         if [:topics_ids, :tags, :title_query].any? {|field| params[field].present?}
@@ -29,8 +32,10 @@ class Api::V1::TopicsController < Api::V1::BaseController
         end
 
         if @topics
-          jsonapi_paginate(@topics) do |paginated|
-            render jsonapi: paginated
+          jsonapi_filter(@topics, allowed) do |filtered|
+            jsonapi_paginate(filtered.result) do |paginated|
+              render jsonapi: paginated
+            end
           end
         else
           render status: :not_found, body: nil
