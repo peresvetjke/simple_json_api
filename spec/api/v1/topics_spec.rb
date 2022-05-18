@@ -4,6 +4,7 @@ describe "Topics API", type: :request do
   let(:headers)         { { "ACCEPT" => "application/json" } }
   let!(:topic)          { create(:topic) }
   let(:topic_response)  { json["data"] }
+  let!(:session)        { @session ||= sign_in(create(:user)) }
 
   shared_examples "show" do
     context "topic exists" do
@@ -204,98 +205,153 @@ describe "Topics API", type: :request do
     let(:method)    { "post" }
     let(:path)      { "/api/v1/topics" }
 
-    context 'with valid params' do
+    shared_examples "unauthenticated" do
       before { do_request(method, 
-                          path, 
-                          params: { topic: attributes_for(:topic) }, 
-                          headers: headers
-                         ) 
-              }
+                    path, 
+                    params: { topic: attributes_for(:topic) }, 
+                    headers: headers
+                   ) 
+      }
 
-      it "return status 'created'" do
-        expect(response.status).to eq 201
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end      
+    end
+
+    shared_examples "authenticated" do
+      context 'with valid params' do
+        before { do_request(method, 
+                            path, 
+                            params: { topic: attributes_for(:topic) }, 
+                            headers: headers
+                           ) 
+                }
+
+        it "return status 'created'" do
+          expect(response.status).to eq 201
+        end
+
+        it "returns all neccessary fields of created person" do
+          %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+            expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+          end
+        end
       end
 
-      it "returns all neccessary fields of created person" do
-        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
-          expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+      context "with tags" do
+        let!(:tag_1) { create(:tag) }
+        let!(:tag_2) { create(:tag) }
+
+        before { do_request(method, 
+                            path, 
+                            params: { topic: attributes_for(:topic).merge({tag_list: [tag_1.name, tag_2.name]}) }, 
+                            headers: headers
+                           ) 
+                }
+
+        it "return status 'created'" do
+          expect(response.status).to eq 201
+        end
+
+        it "returns all neccessary fields of created person" do
+          %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+            expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+          end
+        end
+
+        it "assigns tags" do
+          expect(assigns(:topic).reload.tag_list).to match_array([tag_1.name, tag_2.name])
+        end
+      end
+
+      context 'with invalid params' do
+        before { do_request(method, 
+                            path, 
+                            params: { topic: attributes_for(:topic, title: "") }, 
+                            headers: headers
+                           ) 
+                }
+
+        it "return status 'unprocessable'" do
+          expect(response.status).to eq 422
+        end
+
+        it "returns errors messages" do
+          expect(json["errors"].first['message']).to eq "Title can't be blank"
         end
       end
     end
 
-    context "with tags" do
-      let!(:tag_1) { create(:tag) }
-      let!(:tag_2) { create(:tag) }
-
-      before { do_request(method, 
-                          path, 
-                          params: { topic: attributes_for(:topic).merge({tag_list: [tag_1.name, tag_2.name]}) }, 
-                          headers: headers
-                         ) 
-              }
-
-      it "return status 'created'" do
-        expect(response.status).to eq 201
-      end
-
-      it "returns all neccessary fields of created person" do
-        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
-          expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
-        end
-      end
-
-      it "assigns tags" do
-        expect(assigns(:topic).reload.tag_list).to match_array([tag_1.name, tag_2.name])
-      end
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
     end
 
-    context 'with invalid params' do
-      before { do_request(method, 
-                          path, 
-                          params: { topic: attributes_for(:topic, title: "") }, 
-                          headers: headers
-                         ) 
-              }
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
 
-      it "return status 'unprocessable'" do
-        expect(response.status).to eq 422
-      end
-
-      it "returns errors messages" do
-        expect(json["errors"].first['message']).to eq "Title can't be blank"
-      end
+      it_behaves_like "authenticated"
     end
   end
   
   describe "PATCH /api/v1/topics/:id" do
     let(:method)    { "patch" }
     let(:path)      { "/api/v1/topics/#{topic.id}" }
-
-    context 'with valid params' do
+    
+    shared_examples "unauthenticated" do
       before { do_request(method, path, params: { id: topic, topic: attributes_for(:topic, title: "Corrected") }, headers: headers) }
 
-      it "return successfull status" do
-        expect(response).to be_successful
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end      
+    end
+
+    shared_examples "authenticated" do
+      context 'with valid params' do
+        before { do_request(method, path, params: { id: topic, topic: attributes_for(:topic, title: "Corrected") }, headers: headers) }
+
+        it "return successfull status" do
+          expect(response).to be_successful
+        end
+
+        it "returns all neccessary fields of updated person" do
+          expect(topic_response['attributes']['title']).to eq assigns(:topic).reload.title
+          %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
+            expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+          end
+        end
       end
 
-      it "returns all neccessary fields of updated person" do
-        expect(topic_response['attributes']['title']).to eq assigns(:topic).reload.title
-        %w[title url publication_date image_link annonce body created_at updated_at].each do |attr|
-          expect(topic_response['attributes'][attr]).to eq assigns(:topic).send(attr).as_json
+      context 'with invalid params' do
+        before { do_request(method, path, params: { id: topic, topic: attributes_for(:topic, title: "") }, headers: headers) }
+
+        it "return status 'unprocessable'" do
+          expect(response.status).to eq 422
+        end
+
+        it "returns errors messages" do
+          expect(json["errors"].first['message']).to eq "Title can't be blank"
         end
       end
     end
 
-    context 'with invalid params' do
-      before { do_request(method, path, params: { id: topic, topic: attributes_for(:topic, title: "") }, headers: headers) }
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
+    end
 
-      it "return status 'unprocessable'" do
-        expect(response.status).to eq 422
-      end
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
 
-      it "returns errors messages" do
-        expect(json["errors"].first['message']).to eq "Title can't be blank"
-      end
+      it_behaves_like "authenticated"
     end
   end
 
@@ -305,12 +361,35 @@ describe "Topics API", type: :request do
 
     before { do_request(method, path, params: { id: topic }, headers: headers) }
 
-    it "return successfull status" do
-      expect(response).to be_successful
+    shared_examples "unauthenticated" do
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end      
     end
 
-    it "deletes record" do
-      expect(assigns(:topic).persisted?).to be_falsey
+    shared_examples "authenticated" do
+      it "return successfull status" do
+        expect(response).to be_successful
+      end
+
+      it "deletes record" do
+        expect(assigns(:topic).persisted?).to be_falsey
+      end
+    end
+
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
+    end
+
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
+
+      it_behaves_like "authenticated"
     end
   end
 end

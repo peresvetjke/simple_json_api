@@ -1,7 +1,8 @@
 class Api::V1::TopicsController < Api::V1::BaseController
   include JSONAPI::Filtering
   include JSONAPI::Pagination
-
+  
+  before_action :authenticate_user!, only: %i[create update destroy]
   before_action :set_topic, only: %i[show update destroy]
 
   def show
