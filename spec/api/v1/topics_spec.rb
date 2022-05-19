@@ -298,8 +298,8 @@ describe "Topics API", type: :request do
     end
   end
   
-  describe "PATCH /api/v1/topics/:id" do
-    let(:method)    { "patch" }
+  describe "PUT /api/v1/topics/:id" do
+    let(:method)    { "put" }
     let(:path)      { "/api/v1/topics/#{topic.id}" }
     
     shared_examples "unauthenticated" do

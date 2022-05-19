@@ -1,6 +1,6 @@
 module DeviseTokenAuthHelpers
   HEADERS = { "ACCEPT" => "application/json" }
-  SIGN_IN_PATH = "/auth/sign_in"
+  SIGN_IN_PATH = "/api/v1/auth/sign_in"
 
   def sign_in(user)
     options = { 

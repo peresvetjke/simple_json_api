@@ -6,7 +6,7 @@ describe "Sign in", type: :request do
 
   describe "POST /auth/sign_in" do
     let(:method)    { "post" }
-    let(:path)      { "/auth/sign_in" }
+    let(:path)      { "/api/v1/auth/sign_in" }
       
     before { do_request(method, 
                         path, 

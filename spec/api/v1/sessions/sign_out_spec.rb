@@ -7,7 +7,7 @@ describe "Sign out", type: :request do
 
   describe "DELETE /auth" do
     let(:method)    { "delete" }
-    let(:path)      { "/auth/sign_out" }
+    let(:path)      { "/api/v1/auth/sign_out" }
       
     before { do_request(method, 
                         path, 

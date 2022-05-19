@@ -119,8 +119,8 @@ describe "Tags API", type: :request do
     end
   end
   
-  describe "PATCH /api/v1/tags/:id" do
-    let(:method)    { "patch" }
+  describe "PUT /api/v1/tags/:id" do
+    let(:method)    { "put" }
     let(:path)      { "/api/v1/tags/#{tag.id}" }
 
     shared_examples "unauthenticated" do
