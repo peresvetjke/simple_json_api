@@ -1,3 +1,5 @@
 class Api::V1::BaseController < ApplicationController
-  skip_before_action :verify_authenticity_token
+  include DeviseTokenAuth::Concerns::SetUserByToken
+
+  alias_method :authenticate_user!, :authenticate_api_v1_user!
 end

@@ -1,4 +1,5 @@
 class Api::V1::TagsController < Api::V1::BaseController
+  before_action :authenticate_user!, only: %i[create update destroy]
   before_action :set_tag, only: %i[show update destroy]
 
   def show

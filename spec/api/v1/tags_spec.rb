@@ -4,6 +4,7 @@ describe "Tags API", type: :request do
   let(:headers)         { { "ACCEPT" => "application/json" } }
   let!(:tag)            { create(:tag) }
   let(:tag_response)    { json["data"] }
+  let!(:session)        { @session ||= sign_in(create(:user)) }
 
   describe "GET /api/v1/tags/:id" do
     let(:method)    { "get" }
@@ -68,7 +69,7 @@ describe "Tags API", type: :request do
     let(:method)    { "post" }
     let(:path)      { "/api/v1/tags" }
 
-    context 'with valid params' do
+    shared_examples "unauthenticated" do
       before { do_request(method, 
                           path, 
                           params: { tag: attributes_for(:tag) }, 
@@ -76,36 +77,91 @@ describe "Tags API", type: :request do
                          ) 
               }
 
-      it "return status 'created'" do
-        expect(response.status).to eq 201
-      end
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end      
+    end
 
-      it "returns all neccessary fields of created person" do
-        %w[name slug created_at updated_at].each do |attr|
-          expect(tag_response['attributes'][attr]).to eq assigns(:tag).send(attr).as_json
+    shared_examples "authenticated" do
+      context 'with valid params' do
+        before { do_request(method, 
+                            path, 
+                            params: { tag: attributes_for(:tag) }, 
+                            headers: headers
+                           ) 
+                }
+
+        it "return status 'created'" do
+          expect(response.status).to eq 201
+        end
+
+        it "returns all neccessary fields of created person" do
+          %w[name slug created_at updated_at].each do |attr|
+            expect(tag_response['attributes'][attr]).to eq assigns(:tag).send(attr).as_json
+          end
         end
       end
     end
+
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
+    end
+
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
+
+      it_behaves_like "authenticated"
+    end
   end
   
-  describe "PATCH /api/v1/tags/:id" do
-    let(:method)    { "patch" }
+  describe "PUT /api/v1/tags/:id" do
+    let(:method)    { "put" }
     let(:path)      { "/api/v1/tags/#{tag.id}" }
 
-    context 'with valid params' do
+    shared_examples "unauthenticated" do
       before { do_request(method, path, params: { id: tag, tag: attributes_for(:tag, name: "Corrected") }, headers: headers) }
 
-      it "return successfull status" do
-        expect(response).to be_successful
-      end
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end      
+    end
 
-      it "returns all neccessary fields of updated person" do
-        expect(tag_response['attributes']['name']).to eq assigns(:tag).reload.name
-        %w[name slug created_at updated_at].each do |attr|
-          expect(tag_response['attributes'][attr]).to eq assigns(:tag).send(attr).as_json
+    shared_examples "authenticated" do
+      context 'with valid params' do
+        before { do_request(method, path, params: { id: tag, tag: attributes_for(:tag, name: "Corrected") }, headers: headers) }
+
+        it "return successfull status" do
+          expect(response).to be_successful
         end
-      end
-    end 
+
+        it "returns all neccessary fields of updated person" do
+          expect(tag_response['attributes']['name']).to eq assigns(:tag).reload.name
+          %w[name slug created_at updated_at].each do |attr|
+            expect(tag_response['attributes'][attr]).to eq assigns(:tag).send(attr).as_json
+          end
+        end
+      end 
+    end
+
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
+    end
+
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
+
+      it_behaves_like "authenticated"
+    end
   end
 
   describe "DELETE /api/v1/tags/:id" do
@@ -114,12 +170,35 @@ describe "Tags API", type: :request do
 
     before { do_request(method, path, params: { id: tag }, headers: headers) }
 
-    it "return successfull status" do
-      expect(response).to be_successful
+    shared_examples "unauthenticated" do
+      it "return status 401" do
+        expect(response.status).to eq 401
+      end
     end
 
-    it "deletes record" do
-      expect(assigns(:tag).persisted?).to be_falsey
+    shared_examples "authenticated" do
+      it "return successfull status" do
+        expect(response).to be_successful
+      end
+
+      it "deletes record" do
+        expect(assigns(:tag).persisted?).to be_falsey
+      end
+    end
+
+    context "unauthenticated" do
+      it_behaves_like "unauthenticated"
+    end
+
+    context "authenticated" do
+      let(:headers) { { 
+                        "ACCEPT"        => "application/json",
+                        'uid'           => session['uid'],
+                        'client'        => session['client'], 
+                        'access-token'  => session['access-token'] 
+                    } }
+
+      it_behaves_like "authenticated"
     end
   end
 end

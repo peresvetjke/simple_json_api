@@ -44,5 +44,8 @@ http://localhost:3000/api/v1/topics.json?page[size]=5&page[number]=2
 http://localhost:3000/api/v1/topics.json?topics_ids[]=1&topics_ids[]=2&sort=-id
 ```
 
+### Swagger specification
+https://app.swaggerhub.com/apis/peresvetjke/simple_json_api/1.0.0
+
 ### ER Diagram
 ![alt text](https://github.com/peresvetjke/simple_json_api/blob/main/simple_json_api_v0.2.drawio.png?raw=true)
